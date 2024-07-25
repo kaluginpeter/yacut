@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY_FLASK_APP')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY_FLASK_APP', 'secret_key')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db, render_as_batch=True)
 
