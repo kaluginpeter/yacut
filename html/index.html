@@ -9,32 +9,14 @@
   <link rel="icon" type="image/png" sizes="32x32" href="img/fav/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="img/fav/favicon-16x16.png">
   <link rel="stylesheet" href="css/bootstrap.min.css">
-  <title>YaCut - укоротитель ссылок</title>
+  <title>{% block title %} {% endblock %}YaCut - укоротитель ссылок</title>
 </head>
 
 <body>
-  <header class="pb-5">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
-      <div class="container">
-        <div class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-          aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </div>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="nav nav-pills">
-            <li class="nav-item">
-              <a class="nav-link" href="">
-                Главная
-              </a>
-            </li>
-          </ul>
-        </div>
-
-      </div>
-    </nav>
-  </header>
+  {% include 'header.html' %}
 
   <main>
+    {% block body %}
     <section class="container my-5 px-4">
       <h1 class="text-center"><span style="color:red">Ya</span>Cut</h1>
       <p class="text-center my-4">
@@ -81,12 +63,11 @@
           </div>
         </div>
       </div>
-
+    
     </section>
   </main>
-  <footer class="fixed-bottom border-top text-center py-3">
-    <p>Укоротитель ссылок YaCut</p>
-  </footer>
+  {% endblock %}
+  {% include 'footer.html' %}
 </body>
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
   integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
