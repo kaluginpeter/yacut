@@ -17,7 +17,10 @@ EXISTING_SHORT_URL_ERROR_MESSAGE = (
 
 def gen_unique_short_id():
     simbols_range = ascii_letters + digits
-    return ''.join(choice(simbols_range) for _ in range(6))
+    while True:
+        short_url = ''.join(choice(simbols_range) for _ in range(6))
+        if not URLMap.find_short_url_instance(short_url):
+            return short_url
 
 
 class URLMap(db.Model):
