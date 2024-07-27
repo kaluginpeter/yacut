@@ -39,14 +39,14 @@ class URLForm(FlaskForm):
 
     def validate_custom_id(self, short):
         if short.data:
+            if not (
+                len(short.data) <= constants.SHORT_LENGTH and
+                fullmatch(constants.REGEX_SHORT_VALIDATION, short.data)
+            ):
+                raise ValidationError(INVALID_SIMBOLS_ERROR)
             if URLMap.get_short_instance(
                 short.data
             ):
                 raise ValidationError(
                     EXISTING_SHORT_ERROR
                 )
-            if not (
-                len(short.data) <= constants.SHORT_LENGTH and
-                fullmatch(constants.REGEX_SHORT_VALIDATION, short.data)
-            ):
-                raise ValidationError(INVALID_SIMBOLS_ERROR)

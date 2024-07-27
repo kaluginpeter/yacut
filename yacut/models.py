@@ -31,7 +31,7 @@ class URLMap(db.Model):
         for _ in range(constants.ATTEMPS_TO_COLLISION_COUNT):
             short = ''.join(
                 constants.VALID_SIMBOLS_RANGE[
-                    randint(0, len(constants.VALID_SIMBOLS_RANGE))
+                    randint(0, len(constants.VALID_SIMBOLS_RANGE) - 1)
                 ] for _ in range(
                     constants.SHORT_GENERATION_LENGTH
                 )
