@@ -1,40 +1,49 @@
 from http import HTTPStatus
-from flask import jsonify, request
+
+from flask import jsonify, request, url_for
 
 from . import app
-from .constants import BASE_URL
 from .models import URLMap
 from .error_handlers import InvalidAPIUsage
 
 NOT_FOUND_ERROR_MESSAGE = 'Указанный id не найден'
 EMPTY_REQUEST_BODY_ERROR_MESSAGE = 'Отсутствует тело запроса'
+EMPTY_LONG_URL_ERROR_MESSAGE = '"url" является обязательным полем!'
 
 
 @app.route('/api/id/', methods=['POST'])
-def create_short_url():
+def create_short():
     data = request.get_json(silent=True)
     if data is None:
         raise InvalidAPIUsage(
             EMPTY_REQUEST_BODY_ERROR_MESSAGE, HTTPStatus.BAD_REQUEST
         )
-    url_instance = URLMap.create_short_url(
-        data.get('url'),
-        data.get('custom_id')
-    )
+    if 'url' not in data:
+        raise InvalidAPIUsage(EMPTY_LONG_URL_ERROR_MESSAGE, 400)
+    try:
+        urlmap_instance = URLMap.create_short(
+            data['url'],
+            data.get('custom_id')
+        )
+    except Exception as error:
+        raise InvalidAPIUsage(str(error))
     return (
         jsonify(
             {
-                'url': url_instance.original,
-                'short_link': BASE_URL + url_instance.short
+                'url': urlmap_instance.original,
+                'short_link': url_for(
+                    'redirect_from_short', short=urlmap_instance.short,
+                    _external=True
+                )
             }
         ),
         HTTPStatus.CREATED
     )
 
 
-@app.route('/api/id/<path:short_id>/', methods=['GET'])
-def redirect_to_original_url(short_id):
-    original_url = URLMap.find_short_url_instance(short_url=short_id)
-    if original_url is not None:
-        return jsonify({'url': original_url.original}), HTTPStatus.OK
+@app.route('/api/id/<path:short>/', methods=['GET'])
+def redirect_to_original_url(short):
+    urlmap_instance = URLMap.get_short_instance(short=short)
+    if urlmap_instance is not None:
+        return jsonify({'url': urlmap_instance.original}), HTTPStatus.OK
     raise InvalidAPIUsage(NOT_FOUND_ERROR_MESSAGE, HTTPStatus.NOT_FOUND)

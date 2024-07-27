@@ -1,67 +1,68 @@
 from datetime import datetime
-from random import choice
+from random import randint
 from re import fullmatch
-from string import ascii_letters, digits
 
 from . import db, constants
-from .error_handlers import InvalidAPIUsage
 
 EMPTY_LONG_URL_ERROR_MESSAGE = '"url" является обязательным полем!'
-INVALID_SHORT_URL_ERROR_MESSAGE = (
+INVALID_LENGTH_ORIGINAL_URL_ERROR_MESSAGE = (
+    'значение "url" превышает допустимый размер ссылки!'
+)
+INVALID_SHORT_ERROR_MESSAGE = (
     'Указано недопустимое имя для короткой ссылки'
 )
-EXISTING_SHORT_URL_ERROR_MESSAGE = (
+EXISTING_SHORT_ERROR_MESSAGE = (
     'Предложенный вариант короткой ссылки уже существует.'
 )
 
 
-def gen_unique_short_id():
-    simbols_range = ascii_letters + digits
-    while True:
-        short_url = ''.join(choice(simbols_range) for _ in range(6))
-        if not URLMap.find_short_url_instance(short_url):
-            return short_url
-
-
 class URLMap(db.Model):
-    __tablename__ = 'url_map'
     id = db.Column(db.Integer, primary_key=True)
     original = db.Column(
         db.String(constants.ORIGINAL_LINK_LENGTH), nullable=False
     )
     short = db.Column(
-        db.String(constants.SHORT_LINK_LENGTH), nullable=False, unique=True
+        db.String(constants.SHORT_LENGTH), nullable=False, unique=True
     )
     timestamp = db.Column(db.DateTime, index=True, default=datetime.now)
 
     @staticmethod
-    def validate_short_url(short_url):
-        return (
-            fullmatch(constants.REGEX_SHORT_URL_VALIDATION, short_url)
-            and 1 <= len(short_url) <= 16
-        )
-
-    @staticmethod
-    def find_short_url_instance(short_url):
-        return URLMap.query.filter_by(short=short_url).first()
-
-    @staticmethod
-    def create_short_url(url=None, short_url=None):
-        if url is None:
-            raise InvalidAPIUsage(EMPTY_LONG_URL_ERROR_MESSAGE, 400)
-        if short_url:
-            if not URLMap.validate_short_url(short_url):
-                raise InvalidAPIUsage(
-                    INVALID_SHORT_URL_ERROR_MESSAGE, 400
+    def gen_unique_short():
+        for _ in range(constants.ATTEMPS_TO_COLLISION_COUNT):
+            short = ''.join(
+                constants.VALID_SIMBOLS_RANGE[
+                    randint(0, len(constants.VALID_SIMBOLS_RANGE))
+                ] for _ in range(
+                    constants.SHORT_GENERATION_LENGTH
                 )
-            if URLMap.find_short_url_instance(short_url):
-                raise InvalidAPIUsage(
-                    EXISTING_SHORT_URL_ERROR_MESSAGE, 400
+            )
+            if not URLMap.get_short_instance(short):
+                return short
+
+    @staticmethod
+    def get_short_instance(short):
+        return URLMap.query.filter_by(short=short).first()
+
+    @staticmethod
+    def create_short(url=None, short=None):
+        if len(url) > constants.ORIGINAL_LINK_LENGTH:
+            raise Exception(INVALID_LENGTH_ORIGINAL_URL_ERROR_MESSAGE)
+        if short:
+            if not (
+                len(short) <= constants.SHORT_LENGTH and
+                fullmatch(constants.REGEX_SHORT_VALIDATION, short)
+            ):
+                raise Exception(
+                    INVALID_SHORT_ERROR_MESSAGE
+                )
+            if URLMap.get_short_instance(short):
+                raise Exception(
+                    EXISTING_SHORT_ERROR_MESSAGE
                 )
         else:
-            short_url = gen_unique_short_id()
+            short = URLMap.gen_unique_short()
 
-        url_instance = URLMap(original=url, short=short_url)
-        db.session.add(url_instance)
+        urlmap_instance = URLMap(original=url, short=short)
+        db.session.add(urlmap_instance)
         db.session.commit()
-        return url_instance
+        return urlmap_instance

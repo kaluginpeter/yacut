@@ -10,7 +10,7 @@
           <div class="col-sm"></div>
           <div class="col-sm">
             <form method="POST" novalidate>
-                {{ form.csrf_token }}
+              {{ form.csrf_token }}
               <div>
                 <div>
                   {{ form.original_link(class="form-control form-control-lg py-3 mb-3", id="form-title", placeholder="Длинная ссылка") }}
@@ -44,11 +44,11 @@
         <div class="row ">
           <div class="col-sm"></div>
           <div class="col-sm">
-            {% if short_url %}
+            {% if short %}
               <div class="alert alert-success" role="alert">
                 <p class="text-center">
                   <h5 class="text-center">Ваша новая ссылка готова: <br>
-                    <a href="{{ short_url }}">{{ short_url }}</a>
+                    <a href="{{ short }}">{{ short }}</a>
                   </h5>
                 </p>
               </div>
