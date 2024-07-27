@@ -1,2 +1,4 @@
-HTTP_SOURCE = 'http'
-DOMAIN = 'localhost'
+ORIGINAL_LINK_LENGTH = 1024
+SHORT_LINK_LENGTH = 16
+BASE_URL = 'http://localhost/'
+REGEX_SHORT_URL_VALIDATION = r'[a-zA-Z0-9]{0,16}'

@@ -1,7 +1,7 @@
 Клонировать репозиторий и перейти в него в командной строке:
 
 ```
-git clone 
+git clone https://github.com/kaluginpeter/yacut
 ```
 
 ```
@@ -35,3 +35,20 @@ python3 -m pip install --upgrade pip
 ```
 pip install -r requirements.txt
 ```
+
+Команда для запуска:
+
+```
+flask run
+```
+
+### Справка по ручкам:
+```
+openapi.yml
+```
+
+### Stack of techonologies:
+* Flask, Jinja2, SQL-Alchemy, Flask-WTF
+
+### Author:
+* [Kalugin Peter Sergeevich](https://github.com/kaluginpeter)

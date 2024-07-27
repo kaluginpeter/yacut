@@ -1,40 +1,33 @@
-from flask import render_template, abort, redirect
+from http import HTTPStatus
+from flask import render_template, abort, redirect, flash
 
-from . import app, db
+from . import app
+from .constants import BASE_URL
 from .forms import URLForm
 from .models import URLMap
-from .hashing import Snowflake
-from .constants import DOMAIN, HTTP_SOURCE
 
-
-def gen_unique_short_id():
-    snowflake = Snowflake(datacenter_id=1, worker_id=1)
-    return snowflake.generate_id()
+NOT_FOUND_ERROR_MESSAGE = 'Страница не найдена!'
+SUCCESSFUL_SHORT_URL_CREATION_MESSAGE = 'Пользуйтесь на здоровье!'
 
 
 @app.route('/', methods=['GET', 'POST'])
 def main_view():
     form = URLForm()
-    short_url = None
-    if form.validate_on_submit():
-        if form.custom_id.data:
-            short_url = form.custom_id.data
-        else:
-            short_url = gen_unique_short_id()
-        url_instance = URLMap(
-            original=form.original_link.data,
-            short=short_url
-        )
-        short_url = f'{HTTP_SOURCE}://{DOMAIN}/{short_url}'
-        db.session.add(url_instance)
-        db.session.commit()
-    return render_template('main.html', form=form, short_url=short_url)
+    if not form.validate_on_submit():
+        return render_template('index.html', form=form, short_url=None)
+    url_instance = URLMap.create_short_url(
+        form.original_link.data,
+        form.custom_id.data
+    )
+    flash(SUCCESSFUL_SHORT_URL_CREATION_MESSAGE)
+    return render_template(
+        'index.html', form=form, short_url=BASE_URL + url_instance.short
+    )
 
 
 @app.route('/<string:url>', methods=['GET'])
 def redirect_from_short_url(url):
-    url = url.replace('http://localhost/', '')
-    original_url = URLMap.query.filter_by(short=url).first()
+    original_url = URLMap.find_short_url_instance(url)
     if original_url:
         return redirect(original_url.original)
-    raise abort(404, 'Not found')
+    raise abort(HTTPStatus.NOT_FOUND, NOT_FOUND_ERROR_MESSAGE)
