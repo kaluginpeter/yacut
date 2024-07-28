@@ -2,7 +2,7 @@ from datetime import datetime
 from random import choices
 from re import fullmatch
 
-from . import db, constants, exceptions
+from . import db, constants
 
 EMPTY_LONG_URL_ERROR_MESSAGE = '"url" является обязательным полем!'
 INVALID_LENGTH_ORIGINAL_URL_ERROR_MESSAGE = (
@@ -26,6 +26,9 @@ class URLMap(db.Model):
     )
     timestamp = db.Column(db.DateTime, index=True, default=datetime.now)
 
+    class ValidationError(Exception):
+        """Исключение вызывается, если данные не прошли валидацию."""
+
     @staticmethod
     def gen_unique_short():
         for _ in range(constants.ATTEMPS_TO_COLLISION_COUNT):
@@ -37,35 +40,32 @@ class URLMap(db.Model):
             )
             if not URLMap.get(short):
                 return short
-        return ''.join(
-            choices(
-                constants.VALID_SIMBOLS_RANGE,
-                k=constants.SHORT_GENERATION_LENGTH
-            )
-        )
+        return URLMap.gen_unique_short()
 
     @staticmethod
     def get(short):
         return URLMap.query.filter_by(short=short).first()
 
     @staticmethod
-    def create_short(url=None, short=None, validate=True):
+    def create_short(url, short=None, validate=True):
+        auto_generated_short = False
         if not short:
+            auto_generated_short = True
             short = URLMap.gen_unique_short()
         if validate:
             if len(url) > constants.ORIGINAL_LINK_LENGTH:
-                raise exceptions.ValidationError(
+                raise URLMap.ValidationError(
                     INVALID_LENGTH_ORIGINAL_URL_ERROR_MESSAGE
                 )
-            if not (
+            if not auto_generated_short and not (
                 len(short) <= constants.SHORT_LENGTH and
                 fullmatch(constants.REGEX_SHORT_VALIDATION, short)
             ):
-                raise exceptions.ValidationError(
+                raise URLMap.ValidationError(
                     INVALID_SHORT_ERROR_MESSAGE
                 )
             if URLMap.get(short):
-                raise exceptions.ValidationError(
+                raise URLMap.ValidationError(
                     EXISTING_SHORT_ERROR_MESSAGE
                 )
 

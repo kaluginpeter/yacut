@@ -5,7 +5,6 @@ from flask import jsonify, request, url_for
 from . import app
 from .constants import REDIRECT_SHORT_FUNCTION_NAME
 from .error_handlers import InvalidAPIUsage
-from .exceptions import ValidationError
 from .models import URLMap
 
 NOT_FOUND_ERROR_MESSAGE = 'Указанный id не найден'
@@ -38,7 +37,7 @@ def create_short():
             ),
             HTTPStatus.CREATED
         )
-    except ValidationError as error:
+    except URLMap.ValidationError as error:
         raise InvalidAPIUsage(str(error))
 
 
