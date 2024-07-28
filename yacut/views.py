@@ -1,7 +1,10 @@
 from http import HTTPStatus
+
 from flask import render_template, abort, redirect, url_for
 
 from . import app
+from .constants import REDIRECT_SHORT_FUNCTION_NAME
+from .exceptions import ValidationError
 from .forms import URLForm
 from .models import URLMap
 
@@ -14,15 +17,16 @@ def main_view():
     if not form.validate_on_submit():
         return render_template('index.html', form=form, short_url=None)
     try:
-        url_instance = URLMap.create_short(
+        url_map = URLMap.create_short(
             form.original_link.data,
-            form.custom_id.data
+            form.custom_id.data,
+            validate=False
         )
-    except Exception:
+    except ValidationError:
         abort(500)
     return render_template(
-        'index.html', form=form, short=url_for(
-            'redirect_from_short', short=url_instance.short,
+        'index.html', form=form, short_url=url_for(
+            REDIRECT_SHORT_FUNCTION_NAME, short=url_map.short,
             _external=True
         )
     )
@@ -30,7 +34,7 @@ def main_view():
 
 @app.route('/<string:short>', methods=['GET'])
 def redirect_from_short(short):
-    urlmap_instance = URLMap.get_short_instance(short)
-    if urlmap_instance:
-        return redirect(urlmap_instance.original)
+    url_map = URLMap.get(short)
+    if url_map:
+        return redirect(url_map.original)
     raise abort(HTTPStatus.NOT_FOUND, NOT_FOUND_ERROR_MESSAGE)

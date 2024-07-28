@@ -1,5 +1,3 @@
-from re import fullmatch
-
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import (
@@ -9,14 +7,14 @@ from wtforms.validators import (
 from . import constants
 from .models import URLMap
 
-REQUIRED_DATA_MESSAGE = '"{0}" - this field is required!'
+REQUIRED_DATA_MESSAGE = '"{0}" - это поле обязательное!'
 ORIGINAL_LINK_FIELD_NAME = 'original_link'
-SUBMIT_FIELD_MESSAGE = 'Send'
+SUBMIT_FIELD_MESSAGE = 'Отправить'
 EXISTING_SHORT_ERROR = (
     'Предложенный вариант'
     ' короткой ссылки уже существует.'
 )
-INVALID_SIMBOLS_ERROR = 'Допустим только набор(A-Za-z0-9)'
+INVALID_SIMBOLS_ERROR = 'Некорректное имя короткой ссылки!'
 
 
 class URLForm(FlaskForm):
@@ -39,14 +37,7 @@ class URLForm(FlaskForm):
 
     def validate_custom_id(self, short):
         if short.data:
-            if not (
-                len(short.data) <= constants.SHORT_LENGTH and
-                fullmatch(constants.REGEX_SHORT_VALIDATION, short.data)
-            ):
-                raise ValidationError(INVALID_SIMBOLS_ERROR)
-            if URLMap.get_short_instance(
-                short.data
-            ):
+            if URLMap.get(short.data):
                 raise ValidationError(
                     EXISTING_SHORT_ERROR
                 )

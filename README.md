@@ -51,6 +51,9 @@ SECRET_KEY_FLASK_APP='1.618033988749' ключ для приложения flask
 Команда для запуска:
 
 ```
+flask db init
+flask db migrate
+flask db upgrade 
 flask run
 ```
 
