@@ -14,7 +14,7 @@ NOT_FOUND_ERROR_MESSAGE = 'Страница не найдена!'
 def main_view():
     form = URLForm()
     if not form.validate_on_submit():
-        return render_template('index.html', form=form, short_url=None)
+        return render_template('index.html', form=form)
     try:
         return render_template(
             'index.html',
@@ -29,8 +29,10 @@ def main_view():
                 _external=True
             )
         )
-    except URLMap.ValidationError:
-        flash(500)
+    except URLMap.ValidationError as error:
+        flash(str(error), HTTPStatus.BAD_REQUEST)
+    except URLMap.DataBaseCapacityError as error:
+        flash(str(error), HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @app.route('/<string:short>', methods=['GET'])

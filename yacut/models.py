@@ -14,6 +14,7 @@ INVALID_SHORT_ERROR_MESSAGE = (
 EXISTING_SHORT_ERROR_MESSAGE = (
     'Предложенный вариант короткой ссылки уже существует.'
 )
+DATABASE_CAPACITY_FILLED_ERROR_MESSAGE = 'Сервис перегружен данными!'
 
 
 class URLMap(db.Model):
@@ -29,6 +30,9 @@ class URLMap(db.Model):
     class ValidationError(Exception):
         """Исключение вызывается, если данные не прошли валидацию."""
 
+    class DataBaseCapacityError(Exception):
+        """Исключение вызывается, если база данных переполнена."""
+
     @staticmethod
     def gen_unique_short():
         for _ in range(constants.ATTEMPS_TO_COLLISION_COUNT):
@@ -40,7 +44,9 @@ class URLMap(db.Model):
             )
             if not URLMap.get(short):
                 return short
-        return URLMap.gen_unique_short()
+        raise URLMap.DataBaseCapacityError(
+            DATABASE_CAPACITY_FILLED_ERROR_MESSAGE
+        )
 
     @staticmethod
     def get(short):
@@ -48,27 +54,24 @@ class URLMap(db.Model):
 
     @staticmethod
     def create_short(url, short=None, validate=True):
-        auto_generated_short = False
-        if not short:
-            auto_generated_short = True
-            short = URLMap.gen_unique_short()
         if validate:
             if len(url) > constants.ORIGINAL_LINK_LENGTH:
                 raise URLMap.ValidationError(
                     INVALID_LENGTH_ORIGINAL_URL_ERROR_MESSAGE
                 )
-            if not auto_generated_short and not (
+            if short and not (
                 len(short) <= constants.SHORT_LENGTH and
                 fullmatch(constants.REGEX_SHORT_VALIDATION, short)
             ):
                 raise URLMap.ValidationError(
                     INVALID_SHORT_ERROR_MESSAGE
                 )
-            if URLMap.get(short):
+            if short and URLMap.get(short):
                 raise URLMap.ValidationError(
                     EXISTING_SHORT_ERROR_MESSAGE
                 )
-
+        if not short:
+            short = URLMap.gen_unique_short()
         url_map = URLMap(original=url, short=short)
         db.session.add(url_map)
         db.session.commit()

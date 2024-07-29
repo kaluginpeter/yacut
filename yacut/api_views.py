@@ -20,7 +20,9 @@ def create_short():
             EMPTY_REQUEST_BODY_ERROR_MESSAGE, HTTPStatus.BAD_REQUEST
         )
     if 'url' not in data:
-        raise InvalidAPIUsage(EMPTY_LONG_URL_ERROR_MESSAGE, 400)
+        raise InvalidAPIUsage(
+            EMPTY_LONG_URL_ERROR_MESSAGE, HTTPStatus.BAD_REQUEST
+        )
     try:
         return (
             jsonify(
@@ -39,6 +41,8 @@ def create_short():
         )
     except URLMap.ValidationError as error:
         raise InvalidAPIUsage(str(error))
+    except URLMap.DataBaseCapacityError as error:
+        raise InvalidAPIUsage(error, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @app.route('/api/id/<path:short>/', methods=['GET'])
