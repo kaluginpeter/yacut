@@ -21,7 +21,7 @@ def main_view():
             form=form,
             short_url=url_for(
                 REDIRECT_SHORT_FUNCTION_NAME,
-                short=URLMap.create_short(
+                short=URLMap.create(
                     form.original_link.data,
                     form.custom_id.data,
                     validate=False

@@ -30,7 +30,7 @@ def create_short():
                     'url': data['url'],
                     'short_link': url_for(
                         REDIRECT_SHORT_FUNCTION_NAME,
-                        short=URLMap.create_short(
+                        short=URLMap.create(
                             data['url'], data.get('custom_id')
                         ).short,
                         _external=True

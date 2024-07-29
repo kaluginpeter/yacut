@@ -53,7 +53,7 @@ class URLMap(db.Model):
         return URLMap.query.filter_by(short=short).first()
 
     @staticmethod
-    def create_short(url, short=None, validate=True):
+    def create(url, short=None, validate=True):
         if validate:
             if len(url) > constants.ORIGINAL_LINK_LENGTH:
                 raise URLMap.ValidationError(
